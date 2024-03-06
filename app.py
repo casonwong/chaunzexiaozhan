@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 import requests
-import json
 
 app = Flask(__name__)
 
@@ -10,28 +9,14 @@ CHATGPT_API_URL = 'https://api.openai.com/v1/engines/davinci-codex/completions'
 
 
 # 发送消息
-def send_wechat_message(openid, access_token, message):
-    url = f'https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token={access_token}'
-    headers = {'Content-Type': 'application/json'}
-
-    data = {
-        'touser': openid,  # 用户的 OpenID
-        'msgtype': 'text',  # 消息类型
-        'text': {
-            'content': message  # 要发送的消息内容
-        }
-    }
-
-    response = requests.post(url, headers=headers, data=json.dumps(data))
-    return response.json()
-
-
-# 微信订阅号的消息接口
 @app.route('/wechatGpt', methods=['POST'])
 def wechat():
     data = request.json
-    # 这里应该提取微信发来的消息并进行处理，以下仅为示例
     wechat_message = data.get('message', '')
+
+    # 这里可以打印日志
+    print(request)
+    print(wechat_message)
 
     # ChatGPT API 请求的头部信息
     headers = {
@@ -46,40 +31,31 @@ def wechat():
         json={'prompt': wechat_message, 'max_tokens': 1500}
     ).json()
 
-    # 从 ChatGPT 的回复中提取文本部分
     gpt_text = chatgpt_response.get('choices', [{}])[0].get('text', '')
 
-    # 将 ChatGPT 的回复发送回微信订阅号，这里需要对接您的微信API
-    # 并确保按照微信API所需的格式发送消息，以下仅为示例，'YOUR_WECHAT_API'需替换为实际API
-    wechat_api_response = requests.post('YOUR_WECHAT_API', json={'reply': gpt_text}).json()
+    # 这里应该编写正确对接微信API的代码，以下为示例，假定有一个函数 send_wechat_response 来发送回复
+    wechat_api_response = send_wechat_response(wechat_message, gpt_text)
 
     return jsonify(wechat_api_response)
 
 
-app = Flask(__name__)
+def send_wechat_response(user_message, gpt_response):
+    # 这里应当使用微信公众号的 API 来发送回复
+    url = f'https://api.weixin.qq.com/cgi-bin/message/custom/send'
 
-
-@app.route('/wechat_msg_check', methods=['POST'])
-def wechat_msg_check():
-    openid = request.headers.get('x-wx-openid')
-    content = request.json.get('content')
-
-    url = 'http://api.weixin.qq.com/wxa/msg_sec_check'  # 由于是云调用，不需要 access_token
-    data = {
-        'openid': openid,
-        'version': 2,
-        'scene': 2,
-        'content': content
+    # 构造回复用户的消息数据格式，以下仅为示例
+    wechat_response_data = {
+        'touser': user_message['FromUserName'],  # 你需要从用户发送的消息中获取 FromUserName
+        'msgtype': 'text',
+        'text': {
+            'content': gpt_response
+        }
     }
 
-    response = requests.post(url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
-    if response.status_code == 200:
-        # 打印接口返回内容，便于调试
-        print('接口返回内容', response.json())
-        return jsonify(response.json()), 200
-    else:
-        return 'Error', response.status_code
+    # 发送 POST 请求到微信API
+    response = requests.post(url, json=wechat_response_data)
+    return response.json()
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
