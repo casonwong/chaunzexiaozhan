@@ -1,0 +1,14 @@
+   {
+     "envId": "prod-3g9wsa4va66e2a00",
+     "functions": [{
+       "name": "wechat",
+       "type": "HTTP",
+       "config": {
+         "timeout": 5,
+         "envVariables": {},
+         "runtime": "python3.6",
+         "entryFile": "app.py"
+       },
+       "path": "/wechat"
+     }]
+   }
