@@ -62,4 +62,4 @@ def send_wechat_response(user_message, gpt_response):
 
 
 if __name__ == '__main__':
-    app.run(host=sys.argv[1], port=sys.argv[2], debug=True)
+    app.run()
