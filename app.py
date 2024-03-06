@@ -1,5 +1,9 @@
 from flask import Flask, request, jsonify
+from wxcloudrun import app
 import requests
+# 创建应用实例
+import sys
+
 
 app = Flask(__name__)
 
@@ -58,4 +62,4 @@ def send_wechat_response(user_message, gpt_response):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host=sys.argv[1], port=sys.argv[2], debug=True)
